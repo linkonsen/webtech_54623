@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Personal academic profile page for student portfolio">
+    <meta name="keywords" content="student, profile, education, academic, AIUB">
+    <meta name="author" content="John Ahmed">
+    <title>My Academic Profile</title>
+</head>
+<body>
+
+    <header>
+        <h1> Academic Profile</h1>
+        <nav>
+            <a href="#biography">Biography</a> |
+            <a href="#education">Education</a> |
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <section id="biography">
+            <h2>Biography</h2>
+            <p>
+                Hello! I am a student at American International University Bangladesh (AIUB). 
+                I am passionate about learning web development and programming. 
+                I enjoy working on projects and solving problems through coding.
+            </p>
+        </section>
+
+        <section id="education">
+            <h2>Education Background</h2>
+            
+            <table border="1">
+                <caption>Academic Records</caption>
+                
+                <thead>
+                    <tr>
+                        <th>Degree</th>
+                        <th>Institution</th>
+                        <th>Year</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    <tr>
+                        <td>BSc in Computer Science</td>
+                        <td>AIUB</td>
+                        <td>2022-Present</td>
+                        <td>3.65</td>
+                    </tr>
+                    <tr>
+                        <td>Higher Secondary Certificate</td>
+                        <td>Dhaka College</td>
+                        <td>2021</td>
+                        <td>GPA 5.00</td>
+                    </tr>
+                    <tr>
+                        <td>Secondary School Certificate</td>
+                        <td>Motijheel Govt. School</td>
+                        <td>2019</td>
+                        <td>GPA 5.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="contact">
+            <h2>Contact Me</h2>
+            
+            <form action="#" method="post">
+                
+                <label for="name">Name:</label><br>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required maxlength="50">
+                <br><br>
+                
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" placeholder="example@mail.com" required>
+                <br><br>
+                
+                <label for="phone">Phone:</label><br>
+                <input type="tel" id="phone" name="phone" placeholder="01XXXXXXXXX" pattern="[0-9]{11}">
+                <br><br>
+                
+                <label for="message">Message:</label><br>
+                <textarea id="message" name="message" rows="5" cols="30" placeholder="Write your message here" required maxlength="500"></textarea>
+                <br><br>
+                
+                <input type="submit" value="Send Message">
+                <input type="reset" value="Clear">
+                
+            </form>
+        </section>
+
+    </main>
+
+    <footer>
+        
+        <p>Copyright 2026. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
