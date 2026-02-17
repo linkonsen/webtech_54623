@@ -1,0 +1,75 @@
+/* -----------------------------
+   GROUP SELECTOR
+------------------------------*/
+h1, h2 {
+    color: seagreen;
+    text-align: center;
+}
+ 
+/* -----------------------------
+   ABSOLUTE UNITS
+------------------------------*/
+h1 {
+    font-size: 30px;      /* px */
+    margin-bottom: 1cm;   /* cm */
+}
+ 
+img {
+    width: 300px;         /* px */
+    height: 5cm;          /* cm */
+}
+ 
+/* -----------------------------
+   RELATIVE UNITS
+------------------------------*/
+body {
+    font-size: 16px;
+}
+ 
+.language-list {
+    width: 60%;          /* % */
+    font-size: 1.2em;    /* em */
+}
+ 
+section {
+    padding: 2rem;       /* rem */
+    height: 30vh;        /* vh */
+}
+ 
+/* -----------------------------
+   DESCENDANT SELECTOR
+------------------------------*/
+.form-section p {
+    color: gray;
+    font-size: 1.1rem;
+}
+ 
+/* -----------------------------
+   ATTRIBUTE SELECTOR
+------------------------------*/
+input[type="text"] {
+    padding: 10px;
+    width: 50%;
+    border: 2px solid gray;
+}
+ 
+/* -----------------------------
+   PSEUDO-CLASSES
+------------------------------*/
+a:hover {
+    color:maroon;
+}
+ 
+button:hover {
+    background-color: lightblue;
+}
+ 
+button:active {
+    background-color: green;
+    color: blue;
+}
+ 
+input[type="text"]:focus {
+    border-color: maroon;
+    outline: none;
+}

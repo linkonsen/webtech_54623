@@ -1,0 +1,65 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 85%;
+    margin-bottom: 35px;
+}
+
+th, td {
+    border: 1px solid blue;
+    padding: 10px;
+    text-align: justify;
+}
+
+
+.box {
+    width: 200px;
+    height: 100px;
+    margin: 20px;
+    border: 5px solid seagreen;
+    padding: 20px;
+    background-color: lightcoral;
+}
+
+.box2 {
+    box-sizing: border-box;
+    background-color: lightblue;
+}
+
+.box3 {
+    padding: 40px;
+    margin: 40px;
+    background-color: lightgreen;
+}
+
+
+.block-box {
+    display: block;
+    background-color: pink;
+    margin-bottom: 10px;
+}
+
+.inline-box {
+    display: inline;
+    background-color: limegreen;
+}
+
+.inline-block-box {
+    display: inline-block;
+    width: 150px;
+    height: 50px;
+    background-color: lightsalmon;
+    margin: 10px;
+}
+
+.hidden-box {
+    display: none;
+}
+
+.visibility-box {
+    visibility: hidden;
+}
