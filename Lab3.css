@@ -39,20 +39,20 @@ th, td {
 
 .block-box {
     display: block;
-    background-color: pink;
+    background-color:yellowgreen;
     margin-bottom: 10px;
 }
 
 .inline-box {
     display: inline;
-    background-color: limegreen;
+    background-color: red;
 }
 
 .inline-block-box {
     display: inline-block;
     width: 150px;
     height: 50px;
-    background-color: lightsalmon;
+    background-color: blueviolet;
     margin: 10px;
 }
 
