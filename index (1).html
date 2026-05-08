@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UniLib — Library Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- ══════════════════════════════════════
+       VIEW LAYER — CSS
+  ══════════════════════════════════════════ -->
+  <style>
+    /* ── Design tokens ─────────────────── */
+    :root {
+      --ink:       #1a1a2e;
+      --paper:     #f5f0e8;
+      --cream:     #ede8dc;
+      --gold:      #c9a84c;
+      --gold-lt:   #e8c96b;
+      --rust:      #b5451b;
+      --sage:      #4a7c59;
+      --sky:       #2c6e8a;
+      --border:    #c8bfa8;
+      --shadow:    rgba(26,26,46,.12);
+      --radius:    6px;
+      --ff-serif:  'Playfair Display', Georgia, serif;
+      --ff-mono:   'Fira Code', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--ff-mono);
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* Subtle grid texture on body */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── Layout ─────────────────────────── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 4rem; position: relative; z-index: 1; }
+
+    /* ── Header ─────────────────────────── */
+    .site-header {
+      border-bottom: 3px double var(--gold);
+      padding: 2rem 0 1.4rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .site-logo { display: flex; align-items: center; gap: .9rem; }
+
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: var(--ink);
+      color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      border-radius: 2px;
+      box-shadow: 3px 3px 0 var(--gold);
+    }
+
+    .logo-text h1 {
+      font-family: var(--ff-serif);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1;
+    }
+
+    .logo-text p {
+      font-size: .7rem;
+      color: var(--gold);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-top: .2rem;
+    }
+
+    .header-meta { font-size: .7rem; color: #888; text-align: right; line-height: 1.8; }
+    .header-meta span { color: var(--ink); font-weight: 500; }
+
+    /* ── Stats strip ─────────────────────── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 1.8rem 0;
+    }
+
+    .stat-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--gold);
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius);
+      box-shadow: 2px 2px 0 var(--border);
+    }
+
+    .stat-card .num {
+      font-family: var(--ff-serif);
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .stat-card .lbl {
+      font-size: .65rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #888;
+      margin-top: .3rem;
+    }
+
+    .stat-card.available { border-top-color: var(--sage); }
+    .stat-card.borrowed  { border-top-color: var(--rust); }
+    .stat-card.reserved  { border-top-color: var(--sky);  }
+
+    /* ── Two-column main layout ─────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── Panel (form card) ───────────────── */
+    .panel {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 3px 3px 0 var(--border);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      background: var(--ink);
+      color: var(--gold);
+      padding: .9rem 1.2rem;
+      font-family: var(--ff-serif);
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-head .mode-badge {
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: var(--gold);
+      color: var(--ink);
+      padding: .15rem .55rem;
+      border-radius: 999px;
+    }
+
+    .panel-body { padding: 1.2rem; }
+
+    /* ── Form ────────────────────────────── */
+    .form-field { margin-bottom: 1rem; }
+
+    .form-field label {
+      display: block;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: .4rem;
+    }
+
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      padding: .6rem .8rem;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--ff-mono);
+      font-size: .85rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+    }
+
+    .btn {
+      font-family: var(--ff-mono);
+      font-size: .82rem;
+      font-weight: 500;
+      letter-spacing: .05em;
+      padding: .65rem 1.4rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: transform .1s, box-shadow .1s, opacity .1s;
+    }
+
+    .btn:active { transform: translateY(1px); box-shadow: none !important; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--gold);
+      border-color: var(--ink);
+      box-shadow: 2px 2px 0 var(--gold);
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2a2a4a;
+      box-shadow: 3px 3px 0 var(--gold);
+    }
+
+    .btn-reset {
+      background: transparent;
+      color: #888;
+      border-color: var(--border);
+      width: 100%;
+      margin-top: .5rem;
+    }
+
+    .btn-reset:hover { background: var(--paper); color: var(--ink); }
+
+    /* ── Toast notification ─────────────── */
+    #toast {
+      position: fixed;
+      top: 1.5rem; right: 1.5rem;
+      z-index: 9999;
+      display: none;
+      max-width: 340px;
+    }
+
+    .toast-inner {
+      background: var(--ink);
+      color: var(--paper);
+      padding: .9rem 1.2rem;
+      border-left: 4px solid var(--gold);
+      border-radius: var(--radius);
+      font-size: .82rem;
+      box-shadow: 4px 4px 0 rgba(0,0,0,.2);
+      animation: slideIn .3s ease;
+    }
+
+    .toast-inner.success { border-left-color: var(--sage); }
+    .toast-inner.error   { border-left-color: var(--rust); }
+
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ── Table area ─────────────────────── */
+    .table-panel { overflow: hidden; }
+
+    .table-controls {
+      display: flex;
+      gap: .8rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .search-wrap { position: relative; flex: 1; }
+    .search-wrap input {
+      width: 100%;
+      padding: .6rem .8rem .6rem 2.2rem;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--ff-mono);
+      font-size: .82rem;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .search-wrap input:focus { border-color: var(--gold); }
+    .search-icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: #aaa; font-size: .9rem; }
+
+    .btn-refresh {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      padding: .6rem .9rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: .9rem;
+      transition: background .15s;
+    }
+
+    .btn-refresh:hover { background: var(--paper); }
+
+    /* ── Table ───────────────────────────── */
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem;
+    }
+
+    thead tr {
+      background: var(--ink);
+      color: var(--gold);
+    }
+
+    thead th {
+      padding: .75rem .9rem;
+      text-align: left;
+      font-family: var(--ff-mono);
+      font-weight: 500;
+      letter-spacing: .07em;
+      font-size: .7rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    tbody tr:nth-child(even) { background: var(--cream); }
+    tbody tr:hover { background: rgba(201,168,76,.08); }
+    tbody tr.highlight { animation: rowFlash .6s ease; }
+
+    @keyframes rowFlash {
+      0%   { background: rgba(201,168,76,.35); }
+      100% { background: transparent; }
+    }
+
+    td { padding: .7rem .9rem; vertical-align: middle; }
+
+    .td-title { font-weight: 500; max-width: 180px; }
+    .td-id    { color: #aaa; font-size: .72rem; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: .18rem .65rem;
+      border-radius: 999px;
+      font-size: .68rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .badge.available { background: rgba(74,124,89,.15);  color: var(--sage); border: 1px solid rgba(74,124,89,.3);  }
+    .badge.borrowed  { background: rgba(181,69,27,.12);  color: var(--rust); border: 1px solid rgba(181,69,27,.3);  }
+    .badge.reserved  { background: rgba(44,110,138,.12); color: var(--sky);  border: 1px solid rgba(44,110,138,.3); }
+
+    /* Action buttons */
+    .btn-edit, .btn-del {
+      padding: .28rem .7rem;
+      border-radius: 3px;
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: opacity .15s;
+    }
+
+    .btn-edit { background: var(--ink); color: var(--gold); border-color: var(--ink); }
+    .btn-edit:hover { opacity: .8; }
+
+    .btn-del { background: transparent; color: var(--rust); border-color: var(--rust); margin-left: .3rem; }
+    .btn-del:hover { background: var(--rust); color: #fff; }
+
+    /* Empty state */
+    .empty-row td {
+      text-align: center;
+      padding: 3rem;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* ── Spinner ─────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: .4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Confirm dialog ──────────────────── */
+    #confirmOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(26,26,46,.6);
+      backdrop-filter: blur(3px);
+      z-index: 8000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #confirmOverlay.open { display: flex; }
+
+    .confirm-box {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 6px 6px 0 var(--ink);
+      text-align: center;
+    }
+
+    .confirm-box p {
+      font-family: var(--ff-serif);
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .confirm-box .confirm-actions { display: flex; gap: .8rem; justify-content: center; }
+
+    .btn-confirm-yes {
+      background: var(--rust); color: #fff; border: 1px solid var(--rust);
+      padding: .55rem 1.4rem; border-radius: var(--radius); cursor: pointer;
+      font-family: var(--ff-mono); font-size: .82rem;
+    }
+
+    .btn-confirm-no {
+      background: transparent; color: var(--ink); border: 1px solid var(--border);
+      padding: .55rem 1.4rem; border-radius: var(--radius); cursor: pointer;
+      font-family: var(--ff-mono); font-size: .82rem;
+    }
+
+    /* ── Responsive ─────────────────────── */
+    @media (max-width: 860px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+      .stats-strip { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     VIEW LAYER — HTML Structure
+══════════════════════════════════════════ -->
+
+<div class="page">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-logo">
+      <div class="logo-icon">📚</div>
+      <div class="logo-text">
+        <h1>UniLib</h1>
+        <p>University Library Management System</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      MVC Architecture &nbsp;·&nbsp; PHP + MySQL &nbsp;·&nbsp; AJAX<br/>
+      <span id="clock"></span>
+    </div>
+  </header>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-card">
+      <div class="num" id="stat-total">—</div>
+      <div class="lbl">Total Books</div>
+    </div>
+    <div class="stat-card available">
+      <div class="num" id="stat-available">—</div>
+      <div class="lbl">Available</div>
+    </div>
+    <div class="stat-card borrowed">
+      <div class="num" id="stat-borrowed">—</div>
+      <div class="lbl">Borrowed</div>
+    </div>
+    <div class="stat-card reserved">
+      <div class="num" id="stat-reserved">—</div>
+      <div class="lbl">Reserved</div>
+    </div>
+  </div>
+
+  <!-- Main grid: form | table -->
+  <div class="main-grid">
+
+    <!-- ── LEFT: Add / Edit Form (VIEW) ── -->
+    <aside>
+      <div class="panel">
+        <div class="panel-head">
+          <span id="formTitle">Add New Book</span>
+          <span class="mode-badge" id="formMode">INSERT</span>
+        </div>
+        <div class="panel-body">
+          <input type="hidden" id="editId" value=""/>
+
+          <div class="form-field">
+            <label for="bookTitle">Book Title *</label>
+            <input type="text" id="bookTitle" placeholder="e.g. Clean Code" maxlength="255"/>
+          </div>
+
+          <div class="form-field">
+            <label for="bookAuthor">Author Name *</label>
+            <input type="text" id="bookAuthor" placeholder="e.g. Robert C. Martin" maxlength="255"/>
+          </div>
+
+          <div class="form-field">
+            <label for="bookCategory">Category *</label>
+            <select id="bookCategory">
+              <option value="">— Select Category —</option>
+              <option>Programming</option>
+              <option>Computer Science</option>
+              <option>Fiction</option>
+              <option>History</option>
+              <option>Science</option>
+              <option>Mathematics</option>
+              <option>Psychology</option>
+              <option>Philosophy</option>
+              <option>Engineering</option>
+              <option>Business</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="bookStatus">Availability Status *</label>
+            <select id="bookStatus">
+              <option value="available">✅ Available</option>
+              <option value="borrowed">📤 Borrowed</option>
+              <option value="reserved">🔖 Reserved</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">
+            ＋ Add Book
+          </button>
+          <button class="btn btn-reset" id="resetBtn" onclick="resetForm()" style="display:none">
+            ✕ Cancel Edit
+          </button>
+
+          <!-- MVC Architecture legend -->
+          <div style="margin-top:1.4rem; padding-top:1rem; border-top:1px dashed var(--border); font-size:.7rem; color:#aaa; line-height:2">
+            <strong style="color:var(--ink)">MVC Flow:</strong><br/>
+            <span style="color:var(--gold)">VIEW</span> → AJAX → <code>ajax_handler.php</code><br/>
+            → <span style="color:var(--sky)">CONTROLLER</span> (validate + sanitise)<br/>
+            → <span style="color:var(--sage)">MODEL</span> (mysqli query)<br/>
+            → JSON response → DOM update
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── RIGHT: Books Table (VIEW) ── -->
+    <section class="panel table-panel">
+      <div class="panel-head">
+        <span>Book Catalogue</span>
+        <span id="recordCount" style="font-family:var(--ff-mono);font-size:.75rem;color:#aaa">Loading…</span>
+      </div>
+      <div class="panel-body">
+        <div class="table-controls">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by title or author…"
+                   oninput="debounceSearch()" />
+          </div>
+          <button class="btn-refresh" onclick="loadBooks()" title="Refresh">⟳</button>
+        </div>
+
+        <div class="table-scroll">
+          <table id="booksTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Added</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr class="empty-row">
+                <td colspan="7"><span class="spinner"></span> Loading records…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div><!-- /main-grid -->
+</div><!-- /page -->
+
+<!-- Toast notification -->
+<div id="toast"><div id="toastInner" class="toast-inner"></div></div>
+
+<!-- Delete confirmation dialog -->
+<div id="confirmOverlay">
+  <div class="confirm-box">
+    <p id="confirmMsg">Delete this book?</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-yes" id="confirmYes">Yes, Delete</button>
+      <button class="btn-confirm-no"  onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     VIEW LAYER — JavaScript / AJAX
+     Communicates with ajax_handler.php
+══════════════════════════════════════════ -->
+<script>
+  // ─── Config ──────────────────────────────────────────────
+  const HANDLER = 'ajax_handler.php'; // AJAX endpoint
+  let searchTimer = null;
+
+  // ─── Utility: AJAX helper (XMLHttpRequest) ────────────────
+  /**
+   * Send an AJAX request to the PHP handler.
+   * @param {string} action   - Controller action name
+   * @param {object} payload  - Data to send
+   * @param {function} cb     - Callback(data)
+   * @param {string} method   - 'GET' or 'POST'
+   */
+  function ajax(action, payload, cb, method = 'POST') {
+    const xhr = new XMLHttpRequest();
+
+    if (method === 'GET') {
+      const qs = new URLSearchParams({ action, ...payload }).toString();
+      xhr.open('GET', `${HANDLER}?${qs}`, true);
+      xhr.send();
+    } else {
+      xhr.open('POST', HANDLER, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({ action, ...payload }));
+    }
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      try {
+        const data = JSON.parse(xhr.responseText);
+        cb(data);
+      } catch (e) {
+        cb({ success: false, message: 'Invalid server response.' });
+      }
+    };
+
+    xhr.onerror = () => cb({ success: false, message: 'Network error.' });
+  }
+
+  // ─── Toast ────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    const i = document.getElementById('toastInner');
+    i.className = `toast-inner ${type}`;
+    i.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  // ─── Clock ────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  // ─── Load / Render books (READ) ──────────────────────────
+  function loadBooks(search = '') {
+    document.getElementById('recordCount').textContent = 'Loading…';
+    document.getElementById('tableBody').innerHTML =
+      '<tr class="empty-row"><td colspan="7"><span class="spinner"></span> Fetching records…</td></tr>';
+
+    // AJAX GET → controller action 'list' → BookModel::getAllBooks()
+    ajax('list', { search }, function (data) {
+      loadStats();
+      if (!data.success) { showToast(data.message, 'error'); return; }
+      renderTable(data.data);
+      document.getElementById('recordCount').textContent = `${data.data.length} record(s)`;
+    }, 'GET');
+  }
+
+  function renderTable(books) {
+    const tbody = document.getElementById('tableBody');
+    if (!books.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No books found in the catalogue.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = books.map((b, i) => `
+      <tr id="row-${b.id}">
+        <td class="td-id">${b.id}</td>
+        <td class="td-title">${esc(b.title)}</td>
+        <td>${esc(b.author)}</td>
+        <td>${esc(b.category)}</td>
+        <td><span class="badge ${b.status}">${b.status}</span></td>
+        <td style="white-space:nowrap;color:#aaa;font-size:.72rem">${formatDate(b.added_at)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn-edit" onclick="editBook(${b.id})">Edit</button>
+          <button class="btn-del"  onclick="confirmDelete(${b.id}, '${esc(b.title)}')">Del</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // ─── Load stats ───────────────────────────────────────────
+  function loadStats() {
+    ajax('stats', {}, function (data) {
+      if (!data.success) return;
+      const s = data.data;
+      document.getElementById('stat-total').textContent     = s.total     || 0;
+      document.getElementById('stat-available').textContent = s.available || 0;
+      document.getElementById('stat-borrowed').textContent  = s.borrowed  || 0;
+      document.getElementById('stat-reserved').textContent  = s.reserved  || 0;
+    }, 'GET');
+  }
+
+  // ─── Submit form (CREATE or UPDATE) ──────────────────────
+  function handleSubmit() {
+    const id       = document.getElementById('editId').value;
+    const title    = document.getElementById('bookTitle').value.trim();
+    const author   = document.getElementById('bookAuthor').value.trim();
+    const category = document.getElementById('bookCategory').value;
+    const status   = document.getElementById('bookStatus').value;
+
+    if (!title || !author || !category) {
+      showToast('Please fill in all required fields.', 'error'); return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Saving…';
+
+    const isEdit = id !== '';
+    const action  = isEdit ? 'update' : 'add';
+    const payload = { title, author, category, status };
+    if (isEdit) payload.id = id;
+
+    // AJAX POST → ajax_handler.php → Controller → Model
+    ajax(action, payload, function (data) {
+      btn.disabled = false;
+      btn.innerHTML = isEdit ? '✓ Update Book' : '＋ Add Book';
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        resetForm();
+        loadBooks();
+        // Highlight updated row
+        if (isEdit) {
+          setTimeout(() => {
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.classList.add('highlight');
+          }, 400);
+        }
+      } else {
+        showToast(data.message, 'error');
+      }
+    });
+  }
+
+  // ─── Load book into form (READ one → UPDATE) ─────────────
+  function editBook(id) {
+    // AJAX GET → controller action 'get' → BookModel::getBookById()
+    ajax('get', { id }, function (data) {
+      if (!data.success) { showToast(data.message, 'error'); return; }
+      const b = data.data;
+
+      document.getElementById('editId').value       = b.id;
+      document.getElementById('bookTitle').value    = b.title;
+      document.getElementById('bookAuthor').value   = b.author;
+      document.getElementById('bookCategory').value = b.category;
+      document.getElementById('bookStatus').value   = b.status;
+
+      document.getElementById('formTitle').textContent = 'Edit Book';
+      document.getElementById('formMode').textContent  = 'UPDATE';
+      document.getElementById('submitBtn').innerHTML   = '✓ Update Book';
+      document.getElementById('resetBtn').style.display = '';
+
+      // Scroll to form on mobile
+      document.querySelector('.panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 'GET');
+  }
+
+  // ─── Reset form ───────────────────────────────────────────
+  function resetForm() {
+    document.getElementById('editId').value         = '';
+    document.getElementById('bookTitle').value      = '';
+    document.getElementById('bookAuthor').value     = '';
+    document.getElementById('bookCategory').value   = '';
+    document.getElementById('bookStatus').value     = 'available';
+    document.getElementById('formTitle').textContent = 'Add New Book';
+    document.getElementById('formMode').textContent  = 'INSERT';
+    document.getElementById('submitBtn').innerHTML   = '＋ Add Book';
+    document.getElementById('resetBtn').style.display = 'none';
+    document.getElementById('submitBtn').disabled    = false;
+  }
+
+  // ─── Delete with confirmation ─────────────────────────────
+  let _pendingDeleteId = null;
+
+  function confirmDelete(id, title) {
+    _pendingDeleteId = id;
+    document.getElementById('confirmMsg').textContent = `Delete "${title}"? This cannot be undone.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmYes').onclick = function () {
+      closeConfirm();
+      deleteBook(_pendingDeleteId);
+    };
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    _pendingDeleteId = null;
+  }
+
+  function deleteBook(id) {
+    // AJAX POST → controller action 'delete' → BookModel::deleteBook()
+    ajax('delete', { id }, function (data) {
+      if (data.success) {
+        showToast(data.message, 'success');
+        // Animate row out
+        const row = document.getElementById(`row-${id}`);
+        if (row) {
+          row.style.transition = 'opacity .3s';
+          row.style.opacity = '0';
+          setTimeout(() => loadBooks(), 350);
+        } else {
+          loadBooks();
+        }
+      } else {
+        showToast(data.message, 'error');
+      }
+    });
+  }
+
+  // ─── Search with debounce ─────────────────────────────────
+  function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const q = document.getElementById('searchInput').value.trim();
+      loadBooks(q);
+    }, 350);
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function formatDate(dt) {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'2-digit' });
+  }
+
+  // ─── Close confirm on overlay click ──────────────────────
+  document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm();
+  });
+
+  // ─── Initial load ─────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', function () {
+    loadBooks();
+    loadStats();
+  });
+</script>
+</body>
+</html>
